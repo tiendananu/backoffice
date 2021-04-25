@@ -56,7 +56,7 @@ const resolvers = {
       promises.push(
         new Promise((resolve, reject) => {
           axios
-            .post(`${ms.config.get('url', 'web')}/refreshSettings`)
+            .post(`${ms.config.get('url', 'web')}/api/refreshSettings`)
             .then(resolve)
             .catch(reject)
         })
