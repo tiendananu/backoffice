@@ -53,14 +53,8 @@ const resolvers = {
         )
       )
 
-      promises.push(
-        new Promise((resolve, reject) => {
-          axios
-            .post(`${ms.config.get('url', 'web')}/api/refreshSettings`)
-            .then(resolve)
-            .catch(reject)
-        })
-      )
+      const hooks = ms.config.get('vercel.hooks') || []
+      for (let hook of hooks) promises.push(axios.post(hook))
 
       return Promise.all(promises)
         .then(() => settings)
