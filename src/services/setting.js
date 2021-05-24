@@ -48,7 +48,6 @@ const resolvers = {
                 query: print(REFRESH_SETTINGS)
               })
               .then(resolve)
-              .catch(reject)
           })
         )
       )
@@ -57,7 +56,7 @@ const resolvers = {
       for (let hook of hooks)
         promises.push(
           new Promise((resolve, reject) => {
-            axios.get(hook).then(resolve).catch(reject)
+            axios.get(hook).then(resolve)
           })
         )
 
