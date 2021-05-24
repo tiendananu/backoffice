@@ -2,6 +2,7 @@ const { gql } = require('apollo-server')
 const ms = require('..')
 const Config = ms.getModel('Config')
 const { print } = require('graphql')
+const axios = require('axios').default
 
 const typeDefs = gql`
   extend type Query {

@@ -14,6 +14,7 @@
   "dependencies": {
     "@jibadano/microservice": "^0.1.85",
     "apollo-server": "^2.0.0-beta.2",
+    "axios": "^0.21.1",
     "dotenv": "^6.0.0",
     "isomorphic-unfetch": "^3.0.0",
     "lodash": "^4.17.11",
