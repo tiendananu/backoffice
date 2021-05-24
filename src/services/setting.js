@@ -54,7 +54,12 @@ const resolvers = {
       )
 
       const hooks = ms.config.get('vercel.hooks') || []
-      for (let hook of hooks) promises.push(axios.post(hook))
+      for (let hook of hooks)
+        promises.push(
+          new Promise((resolve, reject) => {
+            axios.get(hook).then(resolve).catch(reject)
+          })
+        )
 
       return Promise.all(promises)
         .then(() => settings)
