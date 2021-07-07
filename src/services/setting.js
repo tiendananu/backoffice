@@ -3,24 +3,52 @@ const ms = require('..')
 const Config = ms.getModel('Config')
 const { print } = require('graphql')
 const axios = require('axios').default
-
+const get = require('lodash/get')
 const typeDefs = gql`
   extend type Query {
     settings: Settings
+    translations: [Translation]
   }
 
   extend type Mutation {
     updateSettings(settings: Settings): Settings
+    updateTranslation(
+      key: ID!
+      newKey: String
+      values: [TranslationValue]
+    ): Translation
   }
 
   scalar Settings
+  scalar Translation
+  scalar TranslationValue
 `
 
 const resolvers = {
   Query: {
-    settings: () => Config.findOne({ _id: 'settings' }).exec()
+    settings: () => Config.findOne({ _id: 'settings' }).exec(),
+    translations: () =>
+      Config.findOne({ _id: 'translations' })
+        .select('translations')
+        .exec()
+        .then(
+          (translations) => get(translations.toObject(), 'translations') || []
+        )
   },
   Mutation: {
+    updateTranslation: (_, { key, newKey, values }) =>
+      Config.findOneAndUpdate(
+        { _id: 'translations', 'translations.key': key },
+        {
+          $set: {
+            'translations.$.key': newKey || key,
+            'translations.$.values': values
+          }
+        },
+        {
+          new: true
+        }
+      ).exec(),
     updateSettings: async (_, { settings }) => {
       delete settings._id
 
