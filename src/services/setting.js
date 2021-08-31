@@ -17,6 +17,7 @@ const typeDefs = gql`
       newKey: String
       values: [TranslationValue]
     ): Translation
+    insertTranslation(key: ID!, values: [TranslationValue]): Translation
   }
 
   scalar Settings
@@ -44,6 +45,16 @@ const resolvers = {
             'translations.$.key': newKey || key,
             'translations.$.values': values
           }
+        },
+        {
+          new: true
+        }
+      ).exec(),
+    insertTranslation: (_, translation) =>
+      Config.findOneAndUpdate(
+        { _id: 'translations' },
+        {
+          $push: { translations: translation }
         },
         {
           new: true
