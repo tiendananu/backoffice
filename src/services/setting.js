@@ -52,7 +52,7 @@ const resolvers = {
       ).exec(),
     insertTranslation: (_, translation) =>
       Config.findOneAndUpdate(
-        { _id: 'translations' },
+        { _id: 'translations', 'translations.key': { $ne: translation.key } },
         {
           $push: { translations: translation }
         },
