@@ -8,6 +8,7 @@ const typeDefs = gql`
   extend type Query {
     settings: Settings
     translations: [Translation]
+    deployStatus: String
   }
 
   extend type Mutation {
@@ -18,6 +19,7 @@ const typeDefs = gql`
       values: [TranslationValue]
     ): Translation
     insertTranslation(key: ID!, values: [TranslationValue]): Translation
+    deploy: String
   }
 
   scalar Settings
@@ -27,6 +29,11 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
+    deployStatus: () =>
+      Config.findOne({ _id: 'settings' })
+        .select('status')
+        .exec()
+        .then((settings) => settings.toObject().status),
     settings: () => Config.findOne({ _id: 'settings' }).exec(),
     translations: () =>
       Config.findOne({ _id: 'translations' })
@@ -37,19 +44,6 @@ const resolvers = {
         )
   },
   Mutation: {
-    updateTranslation: (_, { key, newKey, values }) =>
-      Config.findOneAndUpdate(
-        { _id: 'translations', 'translations.key': key },
-        {
-          $set: {
-            'translations.$.key': newKey || key,
-            'translations.$.values': values
-          }
-        },
-        {
-          new: true
-        }
-      ).exec(),
     insertTranslation: (_, translation) =>
       Config.findOneAndUpdate(
         { _id: 'translations', 'translations.key': { $ne: translation.key } },
@@ -60,15 +54,40 @@ const resolvers = {
           new: true
         }
       ).exec(),
-    updateSettings: async (_, { settings }) => {
+    updateTranslation: (_, { key, newKey, values }) => {
+      Config.findOneAndUpdate(
+        { _id: 'settings' },
+        { $set: { status: 'required' } }
+      ).exec()
+      return Config.findOneAndUpdate(
+        { _id: 'translations', 'translations.key': key },
+        {
+          $set: {
+            'translations.$.key': newKey || key,
+            'translations.$.values': values
+          }
+        },
+        {
+          new: true
+        }
+      ).exec()
+    },
+    updateSettings: (_, { settings }) => {
       delete settings._id
 
-      const oldSettings = await Config.findOneAndUpdate(
+      return Config.findOneAndUpdate(
         { _id: 'settings' },
-        settings,
+        { ...settings, status: 'required' },
         {
-          upsert: true
+          upsert: true,
+          new: true
         }
+      ).exec()
+    },
+    deploy: async (_, __, { log }) => {
+      Config.findOneAndUpdate(
+        { _id: 'settings' },
+        { $set: { status: 'deploying' } }
       ).exec()
 
       const REFRESH_SETTINGS = gql`
@@ -101,8 +120,24 @@ const resolvers = {
         )
 
       return Promise.all(promises)
-        .then(() => settings)
-        .catch((e) => oldSettings)
+        .then(() => {
+          setTimeout(() => {
+            Config.findOneAndUpdate(
+              { _id: 'settings' },
+              { $set: { status: 'ready' } }
+            ).exec()
+          }, ms.config.get('vercel.estimatedDeployTime') || 120000)
+
+          return 'deploying'
+        })
+        .catch((e) => {
+          log('error while updating settings', e.toString(), 'error')
+          Config.findOneAndUpdate(
+            { _id: 'settings' },
+            { $set: { status: 'error' } }
+          ).exec()
+          return 'error'
+        })
     }
   }
 }
