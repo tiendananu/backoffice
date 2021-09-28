@@ -48,7 +48,7 @@ const resolvers = {
       )
     },
     signup: (_, { _id, password }) =>
-      new Credential(crypto.generate({ _id, password })).save()
+      Boolean(new Credential(crypto.generate({ _id, password })).save())
   }
 }
 

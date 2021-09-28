@@ -19,7 +19,14 @@ const typeDefs = gql`
       values: [TranslationValue]
     ): Translation
     insertTranslation(key: ID!, values: [TranslationValue]): Translation
+    insertTranslations(translations: [InputTranslation]!): Translation
+
     deploy: String
+  }
+
+  input InputTranslation {
+    key: ID!
+    values: [TranslationValue]
   }
 
   scalar Settings
@@ -44,6 +51,16 @@ const resolvers = {
         )
   },
   Mutation: {
+    insertTranslations: (_, { translations }) =>
+      Config.findOneAndUpdate(
+        { _id: 'translations' },
+        {
+          $push: { translations: { $each: translations } }
+        },
+        {
+          new: true
+        }
+      ).exec(),
     insertTranslation: (_, translation) =>
       Config.findOneAndUpdate(
         { _id: 'translations', 'translations.key': { $ne: translation.key } },
