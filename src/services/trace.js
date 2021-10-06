@@ -71,7 +71,6 @@ const typeDefs = gql`
     min: String
     max: String
   }
-  scalar Date
 `
 
 const resolvers = {

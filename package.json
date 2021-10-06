@@ -12,13 +12,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@jibadano/microservice": "^0.1.85",
+    "@jibadano/microservice": "^0.1.89",
     "apollo-server": "^2.0.0-beta.2",
     "axios": "^0.21.1",
     "dotenv": "^6.0.0",
     "isomorphic-unfetch": "^3.0.0",
     "lodash": "^4.17.11",
-    "mongoose": "^5.1.4"
+    "mongoose": "^5.9.21"
   },
   "devDependencies": {
     "nodemon": "^1.17.5"

@@ -7,11 +7,22 @@ const typeDefs = gql`
   extend type Query {
     exists(_id: ID): Boolean
     token: Token
+    credentials: [Credential]
+    credential(_id: ID!): Credential
+    role: Role
   }
 
   extend type Mutation {
     login(_id: ID, password: String, remember: Boolean): Token
-    signup(_id: ID!, password: String!): Boolean
+    signup(_id: ID!, password: String!, role: Role): Credential
+    removeCredential(_id: ID!): Credential
+    updateCredential(_id: ID!, password: String, role: Role): Credential
+  }
+
+  type Credential {
+    _id: ID
+    role: Role
+    createdAt: Date
   }
 
   scalar Token
@@ -30,7 +41,18 @@ const resolvers = {
       delete context.session.exp
       delete context.session.iat
       return ms.sign(context.session)
-    }
+    },
+    credentials: () =>
+      Credential.find({ inactive: { $ne: true } })
+        .select('_id role createdAt')
+        .exec(),
+    credential: (_, credential) =>
+      Credential.findOne(credential).select('_id role createdAt').exec(),
+    role: (_, __, { session }) =>
+      Credential.findOne({ _id: session.user._id })
+        .select('role')
+        .exec()
+        .then((credential) => (credential ? credential.role : null))
   },
   Mutation: {
     login: async (_, { _id, password, remember }) => {
@@ -47,8 +69,25 @@ const resolvers = {
         remember ? { expiresIn: '1y' } : null
       )
     },
-    signup: (_, { _id, password }) =>
-      Boolean(new Credential(crypto.generate({ _id, password })).save())
+    signup: (_, { _id, password, role = 'USER' }) => {
+      const credential = crypto.generate({ _id, password })
+      return new Credential({ ...credential, role }).save()
+    },
+    updateCredential: (_, { _id, password, role }) => {
+      const credential = password ? crypto.generate({ _id, password }) : { _id }
+
+      return Credential.findOneAndUpdate(
+        { _id },
+        { ...credential, role },
+        { new: true }
+      )
+        .select('_id role createdAt')
+        .exec()
+    },
+    removeCredential: (_, credential) =>
+      Credential.findOneAndRemove(credential)
+        .select('_id role createdAt')
+        .exec()
   }
 }
 

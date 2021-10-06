@@ -4,7 +4,8 @@ const { config } = require('..')
 module.exports = new Schema({
   _id: {
     type: String,
-    match: /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
+    match:
+      /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
     required: true,
     lowercase: true,
     trim: true,
@@ -14,5 +15,6 @@ module.exports = new Schema({
   hash: String,
   salt: { type: String, max: config.get('login.saltBytes') },
   inactive: { type: Boolean },
-  role: { type: String, default: 'ADMIN', enum: ['GUEST', 'USER', 'ADMIN'] }
+  role: { type: String, default: 'ADMIN', enum: ['GUEST', 'USER', 'ADMIN'] },
+  createdAt: { type: Date, default: Date.now() }
 })
