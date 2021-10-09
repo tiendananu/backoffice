@@ -19,8 +19,8 @@ const typeDefs = gql`
       offset: Int
       size: Int
       sort: String
-    ): [Trace]
-    traceFacets: TraceFacets
+    ): [Trace] @auth(requires: ADMIN)
+    traceFacets: TraceFacets @auth(requires: ADMIN)
   }
 
   type Trace {

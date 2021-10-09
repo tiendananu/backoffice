@@ -6,22 +6,22 @@ const axios = require('axios').default
 const get = require('lodash/get')
 const typeDefs = gql`
   extend type Query {
-    settings: Settings
-    translations: [Translation]
-    deployStatus: String
+    settings: Settings @auth
+    translations: [Translation] @auth
+    deployStatus: String @auth
   }
 
   extend type Mutation {
-    updateSettings(settings: Settings): Settings
+    updateSettings(settings: Settings): Settings @auth
     updateTranslation(
       key: ID!
       newKey: String
       values: [TranslationValue]
-    ): Translation
-    insertTranslation(key: ID!, values: [TranslationValue]): Translation
-    insertTranslations(translations: [InputTranslation]!): Translation
+    ): Translation @auth
+    insertTranslation(key: ID!, values: [TranslationValue]): Translation @auth
+    insertTranslations(translations: [InputTranslation]!): Translation @auth
 
-    deploy: String
+    deploy: String @auth(requires: ADMIN)
   }
 
   input InputTranslation {

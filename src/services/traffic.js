@@ -4,7 +4,7 @@ const ms = require('..')
 const Traffic = ms.getModel('Traffic')
 const typeDefs = gql`
   extend type Query {
-    traffic: Traffic
+    traffic: Traffic @auth
   }
 
   extend type Mutation {
