@@ -10,12 +10,13 @@ const typeDefs = gql`
     credentials: [Credential] @auth
     credential(_id: ID!): Credential @auth
     role: Role @auth
-
+  }
   extend type Mutation {
     login(_id: ID, password: String, remember: Boolean): Token
     signup(_id: ID!, password: String!, role: Role): Credential
     removeCredential(_id: ID!): Credential @auth(requires: ADMIN)
-    updateCredential(_id: ID!, password: String, role: Role): Credential @auth(requires: ADMIN)
+    updateCredential(_id: ID!, password: String, role: Role): Credential
+      @auth(requires: ADMIN)
   }
 
   type Credential {
