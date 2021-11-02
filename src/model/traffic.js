@@ -10,5 +10,8 @@ module.exports = new Schema({
   device: {
     type: String,
     enum: ['desktop', 'mobile', 'tablet']
-  }
+  },
+  userAgent: String,
+  origin: String,
+  geolocation: Schema.Types.Mixed
 })
