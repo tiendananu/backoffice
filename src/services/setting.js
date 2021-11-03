@@ -8,7 +8,6 @@ const typeDefs = gql`
   extend type Query {
     settings: Settings @auth
     translations: [Translation] @auth
-    deployStatus: String @auth
   }
 
   extend type Mutation {
@@ -36,11 +35,6 @@ const typeDefs = gql`
 
 const resolvers = {
   Query: {
-    deployStatus: () =>
-      Config.findOne({ _id: 'settings' })
-        .select('status')
-        .exec()
-        .then((settings) => settings.toObject().status),
     settings: () => Config.findOne({ _id: 'settings' }).exec(),
     translations: () =>
       Config.findOne({ _id: 'translations' })
@@ -71,15 +65,12 @@ const resolvers = {
           new: true
         }
       ).exec(),
-    updateTranslation: (_, { key, newKey, values }) => {
+    updateTranslation: (_, { key, newKey, values }) =>
       Config.findOneAndUpdate(
-        { _id: 'settings' },
-        { $set: { status: 'required' } }
-      ).exec()
-      return Config.findOneAndUpdate(
         { _id: 'translations', 'translations.key': key },
         {
           $set: {
+            status: 'required',
             'translations.$.key': newKey || key,
             'translations.$.values': values
           }
@@ -87,8 +78,7 @@ const resolvers = {
         {
           new: true
         }
-      ).exec()
-    },
+      ).exec(),
     updateSettings: (_, { settings }) => {
       delete settings._id
 
