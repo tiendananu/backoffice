@@ -5,7 +5,7 @@ module.exports = new Schema({
   settings: Schema.Types.Mixed,
   status: {
     type: String,
-    default: 'deploying',
-    enum: ['deployed', 'error', 'deploying']
+    default: 'info',
+    enum: ['info', 'error', 'ok', 'warning']
   }
 })
