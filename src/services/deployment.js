@@ -40,20 +40,20 @@ const resolvers = {
 
         settings = await Config.findOneAndUpdate(
           { _id: 'settings' },
-          { $set: { settings, status: 'deploying' } },
+          { $set: { settings, status: 'info' } },
           { new: true }
         ).exec()
       } else {
         settings = await Config.findOneAndUpdate(
           { _id: 'settings' },
-          { $set: { status: 'deploying' } },
+          { $set: { status: 'info' } },
           { new: true }
         ).exec()
       }
 
       const deployment = await new Deployment({
         settings,
-        status: 'deploying'
+        status: 'info'
       }).save()
 
       const REFRESH_SETTINGS = gql`
@@ -90,10 +90,10 @@ const resolvers = {
           setTimeout(() => {
             Config.findOneAndUpdate(
               { _id: 'settings' },
-              { $set: { status: 'ready' } }
+              { $set: { status: 'ok' } }
             ).exec()
 
-            deployment.status = 'deployed'
+            deployment.status = 'ok'
             deployment.save()
             Deployment.find()
               .sort('-date')
