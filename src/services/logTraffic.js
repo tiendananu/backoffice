@@ -24,11 +24,16 @@ const mobileOrTablet = (a) =>
     a.substr(0, 4)
   )
 
+const bot = (a) => /(Iframely|Vercelbot)/i.test(a)
+
 module.exports = {
   post: (req, res) => {
     const { origin, geolocation, ip, userAgent } = req.body
     let device
+
     if (userAgent) {
+      if (bot(userAgent)) return res.end()
+
       device = 'desktop'
       if (mobileOrTablet(userAgent)) device = 'tablet'
 
