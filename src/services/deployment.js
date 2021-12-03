@@ -88,7 +88,7 @@ const resolvers = {
       )
 
       await updateBase()
-      for await (const event of createDeployment(
+      for (const event of createDeployment(
         {
           token: ms.config.get('deploy.token'),
           path: `${process.env.PWD}/tmp/project`
