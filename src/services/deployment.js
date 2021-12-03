@@ -33,6 +33,29 @@ const typeDefs = gql`
   }
 `
 
+const vercelDeploy = async (deployment) => {
+  for await (const event of createDeployment(
+    {
+      token: ms.config.get('deploy.token'),
+      path: `${process.env.PWD}/tmp/project`
+    },
+    {
+      project: 'web',
+      target: 'production',
+      projectSettings: {
+        framework: null
+      }
+    }
+  )) {
+    deployment.desc = event.type
+    if (event.type === 'ready') {
+      return
+    }
+
+    await deployment.save()
+  }
+}
+
 const resolvers = {
   Query: {
     deployStatus: () =>
@@ -88,47 +111,29 @@ const resolvers = {
       )
 
       await updateBase()
-      for (const event of createDeployment(
-        {
-          token: ms.config.get('deploy.token'),
-          path: `${process.env.PWD}/tmp/project`
-        },
-        {
-          project: 'web',
-          target: 'production',
-          projectSettings: {
-            framework: null
-          }
-        }
-      )) {
-        deployment.desc = event.type
-        if (event.type === 'ready') {
-          deployment.status = 'ok'
-          await Config.findOneAndUpdate(
-            { _id: 'settings' },
-            { $set: { status: 'ok' } }
-          ).exec()
-          await Promise.all(promises)
 
-          await Deployment.find()
-            .sort('-date')
-            .skip(ms.config.get('deploy.max') || 32)
-            .exec()
-            .then(
-              (deployments) =>
-                deployments &&
-                deployments.length &&
-                Deployment.deleteMany({
-                  _id: { $in: deployments.map(({ _id }) => _id) }
-                })
-            )
-          await deployment.save()
+      vercelDeploy(deployment).then(async () => {
+        deployment.status = 'ok'
+        await Config.findOneAndUpdate(
+          { _id: 'settings' },
+          { $set: { status: 'ok' } }
+        ).exec()
+        await Promise.all(promises)
 
-          break
-        }
-
+        await Deployment.find()
+          .sort('-date')
+          .skip(ms.config.get('deploy.max') || 32)
+          .exec()
+          .then(
+            (deployments) =>
+              deployments &&
+              deployments.length &&
+              Deployment.deleteMany({
+                _id: { $in: deployments.map(({ _id }) => _id) }
+              })
+          )
         await deployment.save()
-      }
+      })
 
       return deployment
     }
