@@ -110,29 +110,29 @@ const resolvers = {
         )
       )
 
-      await updateBase()
+      updateBase().then(() => {
+        vercelDeploy(deployment).then(async () => {
+          deployment.status = 'ok'
+          await Config.findOneAndUpdate(
+            { _id: 'settings' },
+            { $set: { status: 'ok' } }
+          ).exec()
+          await Promise.all(promises)
 
-      vercelDeploy(deployment).then(async () => {
-        deployment.status = 'ok'
-        await Config.findOneAndUpdate(
-          { _id: 'settings' },
-          { $set: { status: 'ok' } }
-        ).exec()
-        await Promise.all(promises)
-
-        await Deployment.find()
-          .sort('-date')
-          .skip(ms.config.get('deploy.max') || 32)
-          .exec()
-          .then(
-            (deployments) =>
-              deployments &&
-              deployments.length &&
-              Deployment.deleteMany({
-                _id: { $in: deployments.map(({ _id }) => _id) }
-              })
-          )
-        await deployment.save()
+          await Deployment.find()
+            .sort('-date')
+            .skip(ms.config.get('deploy.max') || 32)
+            .exec()
+            .then(
+              (deployments) =>
+                deployments &&
+                deployments.length &&
+                Deployment.deleteMany({
+                  _id: { $in: deployments.map(({ _id }) => _id) }
+                })
+            )
+          await deployment.save()
+        })
       })
 
       return deployment
