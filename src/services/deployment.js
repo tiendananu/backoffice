@@ -4,6 +4,7 @@ const Deployment = ms.getModel('Deployment')
 const Config = ms.getModel('Config')
 const { print } = require('graphql')
 const axios = require('axios').default
+const { createDeployment } = require('@vercel/client')
 
 const git = require('simple-git')
 
