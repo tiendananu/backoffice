@@ -11,7 +11,7 @@ const git = require('simple-git')
 const updateBase = () =>
   git()
     .silent(true)
-    .clone(ms.config.get('deploy.remote'), `${process.env.PWD}/project`)
+    .clone(ms.config.get('deploy.remote'), `${process.env.PWD}/tmp/project`)
     .then(() => console.log('finished'))
     .catch((err) => console.error('failed: ', err))
 
@@ -91,7 +91,7 @@ const resolvers = {
       for await (const event of createDeployment(
         {
           token: ms.config.get('deploy.token'),
-          path: `${process.env.PWD}/project`
+          path: `${process.env.PWD}/tmp/project`
         },
         {
           project: 'web',
