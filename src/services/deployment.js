@@ -11,7 +11,7 @@ const git = require('simple-git')
 const updateBase = () =>
   git()
     .silent(true)
-    .clone(ms.config.get('deploy.remote'), '/project')
+    .clone(ms.config.get('deploy.remote'), `${process.env.PWD}/project`)
     .then(() => console.log('finished'))
     .catch((err) => console.error('failed: ', err))
 
