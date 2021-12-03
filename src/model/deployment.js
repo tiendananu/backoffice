@@ -7,5 +7,6 @@ module.exports = new Schema({
     type: String,
     default: 'info',
     enum: ['info', 'error', 'ok', 'warning']
-  }
+  },
+  desc: String
 })

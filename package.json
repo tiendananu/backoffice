@@ -13,12 +13,14 @@
   "license": "ISC",
   "dependencies": {
     "@jibadano/microservice": "^0.1.92",
+    "@vercel/client": "^10.2.2",
     "apollo-server": "^2.0.0-beta.2",
     "axios": "^0.21.1",
     "dotenv": "^6.0.0",
     "isomorphic-unfetch": "^3.0.0",
     "lodash": "^4.17.11",
-    "mongoose": "^5.9.21"
+    "mongoose": "^5.9.21",
+    "simple-git": "^2.48.0"
   },
   "devDependencies": {
     "nodemon": "^1.17.5"

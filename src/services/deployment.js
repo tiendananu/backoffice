@@ -5,6 +5,15 @@ const Config = ms.getModel('Config')
 const { print } = require('graphql')
 const axios = require('axios').default
 
+const git = require('simple-git')
+
+const updateBase = () =>
+  git()
+    .silent(true)
+    .clone(ms.config.get('deploy.remote'), '/project')
+    .then(() => console.log('finished'))
+    .catch((err) => console.error('failed: ', err))
+
 const typeDefs = gql`
   extend type Query {
     deployStatus: String @auth
@@ -19,6 +28,7 @@ const typeDefs = gql`
     date: String
     settings: Settings
     status: String
+    desc: String
   }
 `
 
@@ -32,7 +42,7 @@ const resolvers = {
     deployments: () => Deployment.find().sort('-date').exec()
   },
   Mutation: {
-    startDeploy: async (_, { _id }, { log }) => {
+    startDeploy: async (_, { _id }) => {
       let settings
       if (_id) {
         const existingDeployment = await Deployment.findOne({ _id }).exec()
@@ -52,8 +62,7 @@ const resolvers = {
       }
 
       const deployment = await new Deployment({
-        settings,
-        status: 'info'
+        settings
       }).save()
 
       const REFRESH_SETTINGS = gql`
@@ -77,50 +86,50 @@ const resolvers = {
         )
       )
 
-      const hooks = ms.config.get('vercel.hooks') || []
-      for (let hook of hooks)
-        promises.push(
-          new Promise((resolve, reject) => {
-            axios.get(hook).then(resolve)
-          })
-        )
-
-      return Promise.all(promises)
-        .then(() => {
-          setTimeout(() => {
-            Config.findOneAndUpdate(
-              { _id: 'settings' },
-              { $set: { status: 'ok' } }
-            ).exec()
-
-            deployment.status = 'ok'
-            deployment.save()
-            Deployment.find()
-              .sort('-date')
-              .skip(ms.config.get('deployments.max') || 32)
-              .exec()
-              .then(
-                (deployments) =>
-                  deployments &&
-                  deployments.length &&
-                  Deployment.deleteMany({
-                    _id: { $in: deployments.map(({ _id }) => _id) }
-                  })
-              )
-          }, ms.config.get('vercel.estimatedDeployTime') || 120000)
-
-          return deployment
-        })
-        .catch((e) => {
-          log('error while updating settings', e.toString(), 'error')
-          Config.findOneAndUpdate(
+      await updateBase()
+      for await (const event of createDeployment(
+        {
+          token: ms.config.get('deploy.token'),
+          path: `${process.env.PWD}/project`
+        },
+        {
+          project: 'web',
+          target: 'production',
+          projectSettings: {
+            framework: null
+          }
+        }
+      )) {
+        deployment.desc = event.type
+        if (event.type === 'ready') {
+          deployment.status = 'ok'
+          await Config.findOneAndUpdate(
             { _id: 'settings' },
-            { $set: { status: 'error' } }
+            { $set: { status: 'ok' } }
           ).exec()
+          await Promise.all(promises)
 
-          deployment.status = 'error'
-          return deployment.save()
-        })
+          await Deployment.find()
+            .sort('-date')
+            .skip(ms.config.get('deploy.max') || 32)
+            .exec()
+            .then(
+              (deployments) =>
+                deployments &&
+                deployments.length &&
+                Deployment.deleteMany({
+                  _id: { $in: deployments.map(({ _id }) => _id) }
+                })
+            )
+          await deployment.save()
+
+          break
+        }
+
+        await deployment.save()
+      }
+
+      return deployment
     }
   }
 }
