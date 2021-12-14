@@ -24,7 +24,10 @@ const mobileOrTablet = (a) =>
     a.substr(0, 4)
   )
 
-const bot = (a) => /(Iframely|Vercelbot)/i.test(a)
+const bot = (a) =>
+  /(Iframely|Vercelbot|ZoominfoBot|python-requests|facebookexternalhit|Pandalytics|axios|lua-resty-http|okhttp|panscient.com|colly)/i.test(
+    a
+  )
 
 module.exports = {
   post: (req, res) => {
@@ -47,7 +50,11 @@ module.exports = {
       origin,
       device,
       geolocation
-    }).save()
+    })
+      .save()
+      .catch((e) => {
+        //do nothing
+      })
     res.end()
   }
 }

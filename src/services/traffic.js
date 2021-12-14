@@ -92,14 +92,19 @@ const resolvers = {
     }
   },
   Mutation: {
-    logTraffic: (_, { origin, device }, { trace }) =>
-      Boolean(
+    logTraffic: (_, { origin, device }, { trace }) => {
+      try {
         new Traffic({
           ip: trace.ip,
           source: getSource(origin),
           device
         }).save()
-      )
+      } catch (e) {
+        // do nothing
+      }
+
+      return true
+    }
   }
 }
 
