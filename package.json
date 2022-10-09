@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@jibadano/microservice": "^0.1.92",
+    "@jibadano/microservice": "0.1.92",
     "@vercel/client": "^10.2.2",
     "apollo-server": "^2.0.0-beta.2",
     "axios": "^0.21.1",
